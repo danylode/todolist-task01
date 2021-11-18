@@ -17,7 +17,7 @@ h2 {
 }
 
 .nonvisible {
-    display: none;
+    display: none !important;
 }
 
 .tasks {
@@ -26,6 +26,18 @@ h2 {
     margin: auto;
     display: flex;
     flex-direction: column;
+}
+
+.service {
+    margin-top: 15px;
+    min-height: 25px;
+    max-width: 75%;
+    border: 2px solid black;
+    border-radius: 15px 15px;
+    display: flex;
+    justify-content: space-evenly;
+    padding: 10px 15px;
+    margin: auto;
 }
 
 .task {
@@ -53,3 +65,18 @@ h2 {
     text-decoration:line-through;
 }
 
+.show-done-checkbox {
+    margin-right: 5px;
+}
+
+.add-task {
+    display: flex;
+}
+
+.add-task * {
+    margin-right: 5px;
+}
+
+.task-done {
+    justify-self: flex-end;
+}

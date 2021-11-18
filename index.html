@@ -3,15 +3,21 @@
         <link rel="stylesheet" href="styles.css">
     </head>
     <body>
-        <div class="tasks">
-            <div class="task">
-                <div class="task-status">
-                    <h1 class="task-name">Test task</h1>
-                    <input type="checkbox" class="task-done" >
-                </div>
-                <h2 class="task-description">Test description</h2>
-                <h2 class="task-time">2020-10-10</h2>
+        <header class="service">
+            <div class="show-all-block">
+                <input type="checkbox" name="Show all" id="show-all-checkbox">
+                <label for="show-all-checkbox">Show all</label>
             </div>
+            
+            <form class="add-task">
+                <input type="text" id="task-name-input">
+                <input type="text" id="task-description-input">
+                <input type="date" name="task date" id="task-date-input">
+                <button type="submit" id='add-task-button'>Add</button>
+            </form>
+        </header>
+        <div class="tasks">
+
         </div>
     </body>
     <script src="script.js"></script>
