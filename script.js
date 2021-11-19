@@ -23,10 +23,10 @@ class TodoList {
     parentElement = document.querySelector('.tasks');
     showAllCheckBox = document.querySelector('#show-all-checkbox');
     constructor() {
+        this.addTaskEvent();
         this.getTasksFromServer().then(date => date.forEach(element => {
             this.createElementAndAppend(element);
         }));
-        this.addTaskEvent();
     }
 
     createElement(elementTag, elementClass, elementType) {
@@ -53,10 +53,14 @@ class TodoList {
         taskElement.taskDoneElement.checked = task.taskDone;
         taskElement.taskDeleteButton.innerText = 'X';
         taskElement.taskDescElement.innerText = task.taskDescription;
-        //Date check
+        //Task check done
         if (taskElement.taskDoneElement.checked) {
+            if (!this.showAllCheckBox.checked) {
+                taskElement.taskElement.classList.add('nonvisible');
+            }
             taskElement.taskNameElement.classList.add('task-name-done');
         }
+        //Date check
         if (task.taskDate != null) {
             taskElement.taskDateElement.innerText = task.taskDate.split('T')[0];
             if (new Date() > task.taskDate) {
@@ -84,9 +88,7 @@ class TodoList {
             this.deleteTaskFromServer(task.taskId);
         })
         //Show all event
-        this.showAllCheckBox.addEventListener('change', (event) => {
-            this.showAllCheckBox.addEventListener('change', (event) => taskElement.taskElement.classList.toggle('nonvisible', (!this.showAllCheckBox.checked && taskElement.taskDoneElement.checked)));
-        })
+        this.showAllCheckBox.addEventListener('change', (event) => taskElement.taskElement.classList.toggle('nonvisible', (!this.showAllCheckBox.checked && taskElement.taskDoneElement.checked)));
     }
 
     createElementAndAppend(task) {
@@ -137,6 +139,7 @@ class TodoList {
         })
     }
 
+    //Server methods
     getTasksFromServer() {
         return fetch(getTasksEndpoint, {
             method: 'GET',
@@ -174,6 +177,7 @@ class TodoList {
             body: JSON.stringify(taskObject)
         })
     }
+    //End server methods
 }
 
 
