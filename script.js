@@ -22,11 +22,7 @@ class Task {
 class TodoList {
     parentElement = document.querySelector('.tasks');
     showAllCheckBox = document.querySelector('#show-all-checkbox');
-    constructor(tasks) {
-        this.tasks = tasks;
-        /*tasks.forEach(element => {
-            this.createElementAndAppend(element);
-        });*/
+    constructor() {
         this.getTasksFromServer().then(date => date.forEach(element => {
             this.createElementAndAppend(element);
         }));
@@ -77,6 +73,7 @@ class TodoList {
         taskElement.taskDoneElement.addEventListener('change', (event) => {
             task.taskDone = taskElement.taskDoneElement.checked;
             taskElement.taskNameElement.classList.toggle('task-name-done', taskElement.taskDoneElement.checked);
+            taskElement.taskElement.classList.toggle('nonvisible', !this.showAllCheckBox.checked);
             this.patchTaskState(task).then(() => {
                 console.log('OK!');
             })
@@ -133,9 +130,8 @@ class TodoList {
                 dueDate: newTask.taskDate,
                 done: newTask.taskDone
             }
-            this.postTask(taskPostObject).then(() => {
-                this.createElementAndAppend(newTask);
-            });
+            this.postTaskToServer(taskPostObject).then(taskData =>
+                this.createElementAndAppend(taskData[taskData.length - 1]));
             //Clear form
             addTaskForm.reset();
         })
@@ -160,7 +156,7 @@ class TodoList {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(task)
-        }).then(response => response.json);
+        }).then(response => response.json());
     }
 
     patchTaskState(task) {
@@ -180,10 +176,5 @@ class TodoList {
     }
 }
 
-let tasks = [
-    new Task('Test 1', true, 'Test 1 Description', '2020-10-11'),
-    new Task('Test 2', true, 'Test 2 Description', '2020-10-12'),
-    new Task('Test 3', false, 'Test 3 Description', '2021-11-19')
-]
 
-let todoList = new TodoList(tasks);
+let todoList = new TodoList();
