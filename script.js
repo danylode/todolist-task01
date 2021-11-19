@@ -1,9 +1,15 @@
 class Task {
     constructor(taskName, taskDone, taskDescription, taskDate) {
-        this.taskName = taskName;
-        this.taskDone = taskDone;
-        this.taskDescription = taskDescription;
-        this.taskDate = new Date(taskDate);
+        if(typeof taskName === 'object'){
+            Object.assign(this, taskName);
+            this.taskDone = false;
+            this.taskDate = new Date(taskName.taskDate);
+        }else{
+            this.taskName = taskName;
+            this.taskDone = taskDone === undefined? false: taskDone;
+            this.taskDescription = taskDescription;
+            this.taskDate = new Date(taskDate);
+        }
     }
 }
 
@@ -16,6 +22,7 @@ class TodoList {
         tasks.forEach(element => {
             this.createElementAndAppend(element);
         });
+        this.addTaskEvent();
     }
 
     createElement(elementTag, elementClass, elementType) {
@@ -91,8 +98,21 @@ class TodoList {
         this.addEvents(task, taskElement);
         this.appendToParent(taskElement, this.parentElement);
 
-        console.log(taskElement);
         return taskElement;
+    }
+
+    addTaskEvent(){
+        const addTaskForm = document.forms['add-task'];
+        addTaskForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const formData = new FormData(addTaskForm);
+            let newTask = new Task(Object.fromEntries(formData.entries()));
+            //Add task to array and UI
+            tasks.push(newTask);
+            this.createElementAndAppend(newTask);
+            //Clear form
+            addTaskForm.reset();
+        })
     }
 }
 

@@ -35,9 +35,7 @@ function showTask(task) {
     newTaskDeleteButton.classList.add('task-delete-button');
     newTaskDeleteButton.innerText = 'X';
     newTaskDeleteButton.addEventListener('click', () => {
-        newTaskElement.remove();
-        tasks.splice(tasks.indexOf(tasks), 1);
-        console.log(tasks);
+
     })
 
     newTaskStatusElement.appendChild(newTaskNameElement);
