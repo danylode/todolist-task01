@@ -1,5 +1,5 @@
-class Task{
-    constructor (taskName, taskDone, taskDescription, taskDate){
+class Task {
+    constructor(taskName, taskDone, taskDescription, taskDate) {
         this.taskName = taskName;
         this.taskDone = taskDone;
         this.taskDescription = taskDescription;
@@ -7,7 +7,94 @@ class Task{
     }
 }
 
-let currentDate = new Date();
+class TodoList {
+    parentElement = document.querySelector('.tasks');
+    showAllCheckBox = document.querySelector('#show-all-checkbox'); 
+
+    constructor(tasks){
+        this.tasks = tasks;
+        tasks.forEach(element => {
+            this.createElementAndAppend(element);
+        });
+    }
+
+    createElement(elementTag, elementClass, elementType) {
+        let newElement = document.createElement(elementTag);
+        newElement.classList.add(elementClass);
+        if (elementType !== undefined) {
+            newElement.type = elementType;
+        }
+        return newElement;
+    }
+
+    appendToParent(taskElement, parentElement) {
+        taskElement.taskStatusDiv.appendChild(taskElement.taskNameElement);
+        taskElement.taskStatusDiv.appendChild(taskElement.taskDoneElement);
+        taskElement.taskStatusDiv.appendChild(taskElement.taskDeleteButton);
+        taskElement.taskElement.appendChild(taskElement.taskStatusDiv);
+        taskElement.taskElement.appendChild(taskElement.taskDescElement);
+        taskElement.taskElement.appendChild(taskElement.taskDateElement);
+        this.parentElement.appendChild(taskElement.taskElement);
+    }
+
+    addTaskInfo(task, taskElement) {
+        taskElement.taskNameElement.innerText = task.taskName;
+        taskElement.taskDoneElement.checked = task.taskDone;
+        taskElement.taskDeleteButton.innerText = 'X';
+        taskElement.taskDescElement.innerText = task.taskDescription;
+        taskElement.taskDateElement.innerText = task.taskDate.toISOString().split('T')[0];
+        if (taskElement.taskDoneElement.checked) {
+            taskElement.taskNameElement.classList.add('task-name-done');
+        }
+        if (new Date() > task.taskDate){
+            taskElement.taskDateElement.classList.toggle('date-red', taskElement.taskDoneElement.checked);
+        }
+    }
+
+    addEvents(task, taskElement) {
+        //Event on task checkbox 
+        taskElement.taskDoneElement.addEventListener('change', (event) => {
+            taskElement.taskNameElement.classList.toggle('task-name-done', taskElement.taskDoneElement.checked);
+        });
+        //Event on delete button
+        taskElement.taskDeleteButton.addEventListener('click', (event) => {
+            taskElement.taskElement.remove();
+            tasks.splice(tasks.indexOf(taskElement.taskObject), 1);
+        })
+        //Show all event
+        this.showAllCheckBox.addEventListener('change', (event) => {
+            this.showAllCheckBox.addEventListener('change', (event) => taskElement.taskElement.classList.toggle('nonvisible', (!this.showAllCheckBox.checked && taskElement.taskDoneElement.checked)));
+        })
+    }
+
+    createElementAndAppend(task) {
+        let newTaskDiv = this.createElement('div', 'task');
+        let newTaskStatusDiv = this.createElement('div', 'task-status');
+        let newTaskNameLabel = this.createElement('h1', 'task-name');
+        let newTaskDoneCheckBox = this.createElement('input', 'task-done', 'checkbox');
+        let newTaskDescriptionLabel = this.createElement('h2', 'task-description');
+        let newTaskDateLabel = this.createElement('h2', 'task-date');
+        let newTaskDeleteButton = this.createElement('button', 'task-delete-button');
+
+        let taskElement = {
+            taskObject: task,
+            taskElement: newTaskDiv,
+            taskStatusDiv: newTaskStatusDiv,
+            taskNameElement: newTaskNameLabel,
+            taskDoneElement: newTaskDoneCheckBox,
+            taskDescElement: newTaskDescriptionLabel,
+            taskDateElement: newTaskDateLabel,
+            taskDeleteButton: newTaskDeleteButton
+        };
+
+        this.addTaskInfo(task, taskElement);
+        this.addEvents(task, taskElement);
+        this.appendToParent(taskElement, this.parentElement);
+
+        console.log(taskElement);
+        return taskElement;
+    }
+}
 
 let tasks = [
     new Task('Test 1', true, 'Test 1 Description', '2020-10-11'),
@@ -15,77 +102,4 @@ let tasks = [
     new Task('Test 3', false, 'Test 3 Description', '2021-11-19')
 ]
 
-
-function renderTask(task){
-    let tasksElement = document.querySelector('.tasks');
-
-    //New task div
-    let newTaskElement = document.createElement('div');
-    newTaskElement.classList.add('task');
-
-    //New task status element
-    let newTaskStatusElement = document.createElement('div')
-    newTaskStatusElement.classList.add('task-status');
-
-
-    // Task status add
-    let newTaskNameElement = document.createElement('h1');
-    newTaskNameElement.classList.add('task-name');
-    newTaskNameElement.innerText = task.taskName;
-
-    let newTaskCheckBoxElement = document.createElement('input');
-    newTaskCheckBoxElement.classList.add('task-done');
-    newTaskCheckBoxElement.type = 'checkbox';
-
-    //Add done event on checkbox
-    newTaskCheckBoxElement.addEventListener('change', () => {
-        newTaskNameElement.classList.toggle('task-name-done', newTaskCheckBoxElement.checked);
-        newTaskDateElement.classList.toggle('date-red', newTaskCheckBoxElement.checked);
-    })
-
-    if(task.taskDone == true){
-        newTaskNameElement.classList.add('task-name-done');
-        newTaskCheckBoxElement.checked = true;
-    }
-
-    //Add delete button
-    let newTaskDeleteButton = document.createElement('button');
-    newTaskDeleteButton.classList.add('task-delete-button');
-    newTaskDeleteButton.innerText = 'X';
-    newTaskDeleteButton.addEventListener('click', () => {
-        newTaskElement.remove();
-        tasks.splice(tasks.indexOf(tasks),1);
-        console.log(tasks);
-    })
-
-    newTaskStatusElement.appendChild(newTaskNameElement);
-    newTaskStatusElement.appendChild(newTaskCheckBoxElement);
-    newTaskStatusElement.appendChild(newTaskDeleteButton);
-
-    //Task description add
-    let newTaskDescriptionElement = document.createElement('h2');
-    newTaskDescriptionElement.classList.add('task-description');
-    newTaskDescriptionElement.innerText = task.taskDescription;
-
-    //Task date add
-    let newTaskDateElement = document.createElement('h2');
-    newTaskDateElement.classList.add('task-date');
-    if(new Date() >= task.taskDate){
-        newTaskDateElement.classList.add('date-red');
-    }
-    newTaskDateElement.innerText = task.taskDate.toISOString().split('T')[0];
-
-    //add change event on showInProgress button
-    let showAll = document.querySelector('#show-all-checkbox');
-    showAll.addEventListener('change', () => {
-        newTaskElement.classList.toggle('nonvisible', (newTaskCheckBoxElement.checked && !showAll.checked));
-    })
-
-    newTaskElement.appendChild(newTaskStatusElement);
-    newTaskElement.appendChild(newTaskDescriptionElement);
-    newTaskElement.appendChild(newTaskDateElement);
-    tasksElement.appendChild(newTaskElement);
-}
-
-
-tasks.forEach(renderTask);
+let todoList = new TodoList(tasks);
