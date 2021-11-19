@@ -1,12 +1,18 @@
+const corePath = 'http://localhost:5000/api/';
+const getTasksEndpoint = corePath + 'tasks?listId=16&all=true';
+const postTaskEndpoint = corePath + 'tasks?listId=16';
+const deleteTaskEndpoint = corePath + 'tasks/';
+const patchTaskEndpoint = corePath + 'tasks/'
+
 class Task {
     constructor(taskName, taskDone, taskDescription, taskDate) {
-        if(typeof taskName === 'object'){
+        if (typeof taskName === 'object') {
             Object.assign(this, taskName);
             this.taskDone = false;
-            this.taskDate = new Date(taskName.taskDate);
-        }else{
+            this.taskDate = taskName.taskDate;
+        } else {
             this.taskName = taskName;
-            this.taskDone = taskDone === undefined? false: taskDone;
+            this.taskDone = taskDone === undefined ? false : taskDone;
             this.taskDescription = taskDescription;
             this.taskDate = new Date(taskDate);
         }
@@ -15,13 +21,15 @@ class Task {
 
 class TodoList {
     parentElement = document.querySelector('.tasks');
-    showAllCheckBox = document.querySelector('#show-all-checkbox'); 
-
-    constructor(tasks){
+    showAllCheckBox = document.querySelector('#show-all-checkbox');
+    constructor(tasks) {
         this.tasks = tasks;
-        tasks.forEach(element => {
+        /*tasks.forEach(element => {
             this.createElementAndAppend(element);
-        });
+        });*/
+        this.getTasksFromServer().then(date => date.forEach(element => {
+            this.createElementAndAppend(element);
+        }));
         this.addTaskEvent();
     }
 
@@ -49,24 +57,34 @@ class TodoList {
         taskElement.taskDoneElement.checked = task.taskDone;
         taskElement.taskDeleteButton.innerText = 'X';
         taskElement.taskDescElement.innerText = task.taskDescription;
-        taskElement.taskDateElement.innerText = task.taskDate.toISOString().split('T')[0];
+        //Date check
         if (taskElement.taskDoneElement.checked) {
             taskElement.taskNameElement.classList.add('task-name-done');
         }
-        if (new Date() > task.taskDate){
-            taskElement.taskDateElement.classList.toggle('date-red', taskElement.taskDoneElement.checked);
+        if (task.taskDate != null) {
+            taskElement.taskDateElement.innerText = task.taskDate.split('T')[0];
+            if (new Date() > task.taskDate) {
+                taskElement.taskDateElement.classList.toggle('date-red', taskElement.taskDoneElement.checked);
+            }
+        } else {
+            taskElement.taskDateElement.classList.add('nonvisible');
         }
+
     }
 
     addEvents(task, taskElement) {
         //Event on task checkbox 
         taskElement.taskDoneElement.addEventListener('change', (event) => {
+            task.taskDone = taskElement.taskDoneElement.checked;
             taskElement.taskNameElement.classList.toggle('task-name-done', taskElement.taskDoneElement.checked);
+            this.patchTaskState(task).then(() => {
+                console.log('OK!');
+            })
         });
         //Event on delete button
         taskElement.taskDeleteButton.addEventListener('click', (event) => {
             taskElement.taskElement.remove();
-            tasks.splice(tasks.indexOf(taskElement.taskObject), 1);
+            this.deleteTaskFromServer(task.taskId);
         })
         //Show all event
         this.showAllCheckBox.addEventListener('change', (event) => {
@@ -101,17 +119,63 @@ class TodoList {
         return taskElement;
     }
 
-    addTaskEvent(){
+    addTaskEvent() {
         const addTaskForm = document.forms['add-task'];
         addTaskForm.addEventListener('submit', (event) => {
             event.preventDefault();
+            //Get task from form
             const formData = new FormData(addTaskForm);
             let newTask = new Task(Object.fromEntries(formData.entries()));
-            //Add task to array and UI
-            tasks.push(newTask);
-            this.createElementAndAppend(newTask);
+            //Post task on server and add to UI
+            let taskPostObject = {
+                title: newTask.taskName,
+                description: newTask.taskDescription,
+                dueDate: newTask.taskDate,
+                done: newTask.taskDone
+            }
+            this.postTask(taskPostObject).then(() => {
+                this.createElementAndAppend(newTask);
+            });
             //Clear form
             addTaskForm.reset();
+        })
+    }
+
+    getTasksFromServer() {
+        return fetch(getTasksEndpoint, {
+            method: 'GET',
+        }).then(response => response.json());
+    }
+
+    deleteTaskFromServer(taskId) {
+        return fetch(deleteTaskEndpoint + taskId, {
+            method: 'DELETE'
+        }).then(response => response.json());
+    }
+
+    postTaskToServer(task) {
+        return fetch(postTaskEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(task)
+        }).then(response => response.json);
+    }
+
+    patchTaskState(task) {
+        console.log(patchTaskEndpoint + task.taskId);
+        let taskObject = [{
+            "path": "Done",
+            "op": "add",
+            "value": task.taskDone
+        }]
+        return fetch(patchTaskEndpoint + task.taskId, {
+            method: 'PATCH',
+            headers: {
+                "Content-Type": "application/json-patch+json"
+            },
+            body: JSON.stringify(taskObject)
         })
     }
 }
