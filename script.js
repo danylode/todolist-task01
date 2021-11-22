@@ -63,8 +63,8 @@ class TodoList {
         //Date check
         if (task.taskDate != null) {
             taskElement.taskDateElement.innerText = task.taskDate.split('T')[0];
-            if (new Date() > task.taskDate) {
-                taskElement.taskDateElement.classList.toggle('date-red', taskElement.taskDoneElement.checked);
+            if (new Date() > new Date(task.taskDate)) {
+                taskElement.taskDateElement.classList.toggle('date-red');
             }
         } else {
             taskElement.taskDateElement.classList.add('nonvisible');
